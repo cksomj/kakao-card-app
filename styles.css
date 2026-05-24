@@ -214,7 +214,10 @@ textarea:focus {
 
 .card-image {
   aspect-ratio: 1;
-  background: #eef2f6;
+  background-color: #eef2f6;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   display: block;
   object-fit: contain;
   width: 100%;
