@@ -1,11 +1,12 @@
+const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
+const FIXED_SITE_NAME = "jw.org";
+
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
   targetUrl: document.querySelector("#targetUrl"),
   titleText: document.querySelector("#titleText"),
   descriptionText: document.querySelector("#descriptionText"),
   buttonText: document.querySelector("#buttonText"),
-  siteName: document.querySelector("#siteName"),
-  kakaoKey: document.querySelector("#kakaoKey"),
   imageFit: document.querySelectorAll("input[name='imageFit']")
 };
 
@@ -19,12 +20,7 @@ const preview = {
 
 const statusText = document.querySelector("#sendStatus");
 const targetHint = document.querySelector("#targetHint");
-const savedKakaoKey = localStorage.getItem("kakaoCardApp.key");
 const savedImageFit = localStorage.getItem("kakaoCardApp.imageFit");
-
-if (savedKakaoKey) {
-  fields.kakaoKey.value = savedKakaoKey;
-}
 
 if (savedImageFit) {
   const fitControl = document.querySelector(`input[name='imageFit'][value='${savedImageFit}']`);
@@ -52,14 +48,13 @@ function updatePreview() {
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
   const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보기");
-  const site = fallback(fields.siteName.value, "jw.org");
 
   preview.image.src = imageUrl;
   preview.title.textContent = title;
   preview.description.textContent = description;
   preview.button.textContent = button;
   preview.button.href = isHttpUrl(targetUrl) ? targetUrl : "#";
-  preview.site.textContent = site;
+  preview.site.textContent = FIXED_SITE_NAME;
   preview.image.dataset.fit = getImageFit();
   targetHint.textContent = getTargetDomainHint(targetUrl);
 }
@@ -76,24 +71,10 @@ fields.imageFit.forEach((field) => {
   });
 });
 
-fields.kakaoKey.addEventListener("input", () => {
-  localStorage.setItem("kakaoCardApp.key", fields.kakaoKey.value.trim());
-});
-
 document.querySelector("#sendToMe").addEventListener("click", async () => {
   try {
     await sendKakaoMessageToMe();
     statusText.textContent = "내 카톡 나와의 채팅방으로 전송했습니다.";
-  } catch (error) {
-    statusText.textContent = formatKakaoError(error);
-  }
-});
-
-document.querySelector("#loginKakao").addEventListener("click", async () => {
-  try {
-    ensureKakaoReady();
-    await requestTalkMessageScope();
-    statusText.textContent = "카카오 로그인과 talk_message 동의가 확인되었습니다.";
   } catch (error) {
     statusText.textContent = formatKakaoError(error);
   }
@@ -157,11 +138,6 @@ function formatKakaoError(error) {
 }
 
 function ensureKakaoReady() {
-  const key = fields.kakaoKey.value.trim();
-  if (!key) {
-    throw new Error("카카오 JavaScript 키를 먼저 입력해 주세요.");
-  }
-  localStorage.setItem("kakaoCardApp.key", key);
   if (location.protocol === "file:") {
     throw new Error("파일로 연 화면에서는 카카오 전송이 어렵습니다. http://localhost:5188 로 접속해 주세요.");
   }
@@ -169,7 +145,7 @@ function ensureKakaoReady() {
     throw new Error("카카오 SDK를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.");
   }
   if (!Kakao.isInitialized()) {
-    Kakao.init(key);
+    Kakao.init(KAKAO_JAVASCRIPT_KEY);
   }
 }
 
