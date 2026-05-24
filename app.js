@@ -181,8 +181,8 @@ function ensureKakaoReady() {
   }
 }
 
-function getMessageTemplate() {
-  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+async function getMessageTemplate() {
+  const imageUrl = await getSendImageUrl();
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
@@ -207,6 +207,75 @@ function getMessageTemplate() {
     ],
     button_title: button
   };
+}
+
+async function getSendImageUrl() {
+  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+  if (getImageFit() !== "contain") return imageUrl;
+
+  statusText.textContent = "삽화를 전체 보이기용 정사각형 이미지로 변환하고 있습니다.";
+  const file = await createContainedImageFile(imageUrl);
+
+  if (!Kakao.Share || typeof Kakao.Share.uploadImage !== "function") {
+    throw new Error("카카오 이미지 업로드 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
+  }
+
+  const response = await Kakao.Share.uploadImage({
+    file: makeUploadFileList(file)
+  });
+  const uploadedUrl = response?.infos?.original?.url;
+  if (!uploadedUrl) {
+    throw new Error("카카오 이미지 업로드 응답에서 이미지 URL을 찾지 못했습니다.");
+  }
+  return uploadedUrl;
+}
+
+function makeUploadFileList(file) {
+  try {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    return dataTransfer.files;
+  } catch {
+    return [file];
+  }
+}
+
+async function createContainedImageFile(imageUrl) {
+  const image = await loadImageForCanvas(imageUrl);
+  const canvas = document.createElement("canvas");
+  const size = 800;
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#eef2f6";
+  context.fillRect(0, 0, size, size);
+
+  const scale = Math.min(size / image.naturalWidth, size / image.naturalHeight);
+  const width = Math.round(image.naturalWidth * scale);
+  const height = Math.round(image.naturalHeight * scale);
+  const x = Math.round((size - width) / 2);
+  const y = Math.round((size - height) / 2);
+  context.drawImage(image, x, y, width, height);
+
+  const blob = await new Promise((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.92);
+  });
+  if (!blob) {
+    throw new Error("삽화를 변환하지 못했습니다.");
+  }
+
+  return new File([blob], "kakao-card-image.jpg", { type: "image/jpeg" });
+}
+
+function loadImageForCanvas(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("삽화 이미지를 불러오지 못했습니다. 다른 이미지 링크를 사용해 주세요."));
+    image.src = imageUrl;
+  });
 }
 
 async function requestTalkMessageScope() {
@@ -238,12 +307,13 @@ async function sendKakaoMessageToMe() {
   const targetUrl = getTargetUrl();
   statusText.textContent = `전송할 버튼 링크: ${targetUrl}`;
   await requestTalkMessageScope();
+  const templateObject = await getMessageTemplate();
 
   await new Promise((resolve, reject) => {
     Kakao.API.request({
       url: "/v2/api/talk/memo/default/send",
       data: {
-        template_object: getMessageTemplate()
+        template_object: templateObject
       },
       success: resolve,
       fail: reject
