@@ -1,5 +1,6 @@
 const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
 const FIXED_SITE_NAME = "jw.org";
+const CONTAIN_POSITION_Y = 0.44;
 
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
@@ -56,6 +57,7 @@ function updatePreview() {
   preview.button.href = isHttpUrl(targetUrl) ? targetUrl : "#";
   preview.site.textContent = FIXED_SITE_NAME;
   preview.image.dataset.fit = getImageFit();
+  preview.image.style.objectPosition = getImageFit() === "contain" ? `center ${CONTAIN_POSITION_Y * 100}%` : "center center";
   targetHint.textContent = getTargetDomainHint(targetUrl);
 }
 
@@ -234,7 +236,7 @@ async function createContainedImageFile(imageUrl) {
   const width = Math.round(image.naturalWidth * scale);
   const height = Math.round(image.naturalHeight * scale);
   const x = Math.round((size - width) / 2);
-  const y = Math.round((size - height) / 2);
+  const y = Math.round((size - height) * CONTAIN_POSITION_Y);
   context.drawImage(image, x, y, width, height);
 
   const blob = await new Promise((resolve) => {
