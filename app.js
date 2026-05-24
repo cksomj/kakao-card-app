@@ -84,9 +84,9 @@ document.querySelector("#sendToMe").addEventListener("click", async () => {
   }
 });
 
-document.querySelector("#shareKakao").addEventListener("click", async () => {
+document.querySelector("#shareKakao").addEventListener("click", () => {
   try {
-    await shareKakaoMessage();
+    shareKakaoMessage();
     statusText.textContent = "카톡 공유창을 열었습니다.";
   } catch (error) {
     console.error(error);
@@ -163,8 +163,8 @@ function ensureKakaoReady() {
   }
 }
 
-async function getMessageTemplate() {
-  const imageUrl = await getSendImageUrl();
+async function getMessageTemplate(options = {}) {
+  const imageUrl = options.useOriginalImage ? fallback(fields.imageUrl.value, fields.imageUrl.defaultValue) : await getSendImageUrl();
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
@@ -194,9 +194,9 @@ async function getMessageTemplate() {
   };
 }
 
-async function shareKakaoMessage() {
+function shareKakaoMessage() {
   ensureKakaoReady();
-  const templateObject = await getMessageTemplate();
+  const templateObject = getMessageTemplateSync();
 
   if (Kakao.Share && typeof Kakao.Share.sendDefault === "function") {
     Kakao.Share.sendDefault(templateObject);
@@ -209,6 +209,37 @@ async function shareKakaoMessage() {
   }
 
   throw new Error("카카오 공유 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
+}
+
+function getMessageTemplateSync() {
+  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+  const targetUrl = getTargetUrl();
+  const title = fallback(fields.titleText.value, "성경 질문과 대답");
+  const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
+  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
+  const link = getKakaoLink(targetUrl);
+
+  return {
+    object_type: "feed",
+    content: {
+      title,
+      description,
+      image_url: imageUrl,
+      image_width: 800,
+      image_height: 800,
+      link
+    },
+    item_content: {
+      profile_text: FIXED_SITE_NAME
+    },
+    buttons: [
+      {
+        title: button,
+        link
+      }
+    ],
+    button_title: button
+  };
 }
 
 async function getSendImageUrl() {
