@@ -254,16 +254,47 @@ textarea:focus {
   overflow: hidden;
 }
 
-.card-image {
+.image-stage {
   aspect-ratio: 1;
   background-color: #eef2f6;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  display: block;
-  filter: none;
-  object-fit: contain;
+  overflow: hidden;
+  position: relative;
   width: 100%;
+}
+
+.image-stage::before {
+  background: inherit;
+  content: "";
+  filter: blur(34px);
+  inset: -44px;
+  opacity: 0;
+  position: absolute;
+  transform: scale(1.08);
+}
+
+.image-stage::after {
+  background: rgba(255, 255, 255, 0.48);
+  content: "";
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+}
+
+.image-stage[data-fit="contain"]::before,
+.image-stage[data-fit="contain"]::after {
+  opacity: 1;
+}
+
+.card-image {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  width: 100%;
+  z-index: 1;
 }
 
 .card-image[data-fit="cover"] {
