@@ -1,6 +1,6 @@
 const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
 const FIXED_SITE_NAME = "jw.org";
-const CONTAIN_POSITION_Y = 0.44;
+const CONTAIN_POSITION_Y = 1;
 
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
