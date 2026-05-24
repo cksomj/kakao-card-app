@@ -269,10 +269,8 @@ async function getSendImageUrl() {
     }
     return uploadedUrl;
   } catch (error) {
-    console.warn("전체 보이기 이미지 변환 실패, 원본 이미지로 전송합니다.", error);
-    statusText.textContent = `전체 보이기 변환 실패로 원본 삽화로 전송합니다: ${formatKakaoError(error)}`;
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    return imageUrl;
+    console.error("전체 보이기 이미지 변환 실패", error);
+    throw new Error(`전체 보이기 이미지를 만들지 못했습니다: ${formatKakaoError(error)}`);
   }
 }
 
