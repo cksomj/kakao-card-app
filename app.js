@@ -12,6 +12,7 @@ const fields = {
 };
 
 const preview = {
+  imageStage: document.querySelector("#previewImageStage"),
   image: document.querySelector("#previewImage"),
   title: document.querySelector("#previewTitle"),
   description: document.querySelector("#previewDescription"),
@@ -57,8 +58,9 @@ function updatePreview() {
   preview.button.href = isHttpUrl(targetUrl) ? targetUrl : "#";
   preview.site.textContent = FIXED_SITE_NAME;
   preview.image.dataset.fit = getImageFit();
+  preview.imageStage.dataset.fit = getImageFit();
+  preview.imageStage.style.backgroundImage = getImageFit() === "contain" ? `url("${imageUrl.replace(/"/g, "%22")}")` : "";
   preview.image.style.objectPosition = getImageFit() === "contain" ? `center ${CONTAIN_POSITION_Y * 100}%` : "center center";
-  preview.image.style.backgroundImage = getImageFit() === "contain" ? `url("${imageUrl.replace(/"/g, "%22")}")` : "";
   targetHint.textContent = getTargetDomainHint(targetUrl);
 }
 
@@ -196,7 +198,7 @@ async function getMessageTemplate(options = {}) {
 
 function shareKakaoMessage() {
   ensureKakaoReady();
-  const templateObject = getMessageTemplateSync();
+  const templateObject = getShareTemplateSync();
 
   if (Kakao.Share && typeof Kakao.Share.sendDefault === "function") {
     Kakao.Share.sendDefault(templateObject);
@@ -211,26 +213,24 @@ function shareKakaoMessage() {
   throw new Error("카카오 공유 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
 }
 
-function getMessageTemplateSync() {
+function getShareTemplateSync() {
   const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
   const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
-  const link = getKakaoLink(targetUrl);
+  const link = {
+    webUrl: targetUrl,
+    mobileWebUrl: targetUrl
+  };
 
   return {
-    object_type: "feed",
+    objectType: "feed",
     content: {
       title,
       description,
-      image_url: imageUrl,
-      image_width: 800,
-      image_height: 800,
+      imageUrl,
       link
-    },
-    item_content: {
-      profile_text: FIXED_SITE_NAME
     },
     buttons: [
       {
@@ -238,7 +238,7 @@ function getMessageTemplateSync() {
         link
       }
     ],
-    button_title: button
+    buttonTitle: button
   };
 }
 
