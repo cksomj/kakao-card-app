@@ -218,7 +218,7 @@ textarea:focus {
 .preview-stack {
   display: grid;
   gap: 12px;
-  width: min(340px, 100%);
+  width: min(284px, 100%);
 }
 
 .phone-frame {
