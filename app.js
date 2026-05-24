@@ -76,6 +76,7 @@ document.querySelector("#sendToMe").addEventListener("click", async () => {
     await sendKakaoMessageToMe();
     statusText.textContent = "내 카톡 나와의 채팅방으로 전송했습니다.";
   } catch (error) {
+    console.error(error);
     statusText.textContent = formatKakaoError(error);
   }
 });
@@ -181,21 +182,28 @@ async function getSendImageUrl() {
   const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
   if (getImageFit() !== "contain") return imageUrl;
 
-  statusText.textContent = "삽화를 전체 보이기용 정사각형 이미지로 변환하고 있습니다.";
-  const file = await createContainedImageFile(imageUrl);
+  try {
+    statusText.textContent = "삽화를 전체 보이기용 정사각형 이미지로 변환하고 있습니다.";
+    const file = await createContainedImageFile(imageUrl);
 
-  if (!Kakao.Share || typeof Kakao.Share.uploadImage !== "function") {
-    throw new Error("카카오 이미지 업로드 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
-  }
+    if (!Kakao.Share || typeof Kakao.Share.uploadImage !== "function") {
+      throw new Error("카카오 이미지 업로드 기능을 사용할 수 없습니다.");
+    }
 
-  const response = await Kakao.Share.uploadImage({
-    file: makeUploadFileList(file)
-  });
-  const uploadedUrl = response?.infos?.original?.url;
-  if (!uploadedUrl) {
-    throw new Error("카카오 이미지 업로드 응답에서 이미지 URL을 찾지 못했습니다.");
+    const response = await Kakao.Share.uploadImage({
+      file: makeUploadFileList(file)
+    });
+    const uploadedUrl = response?.infos?.original?.url;
+    if (!uploadedUrl) {
+      throw new Error("카카오 이미지 업로드 응답에서 이미지 URL을 찾지 못했습니다.");
+    }
+    return uploadedUrl;
+  } catch (error) {
+    console.warn("전체 보이기 이미지 변환 실패, 원본 이미지로 전송합니다.", error);
+    statusText.textContent = `전체 보이기 변환 실패로 원본 삽화로 전송합니다: ${formatKakaoError(error)}`;
+    await new Promise((resolve) => window.setTimeout(resolve, 700));
+    return imageUrl;
   }
-  return uploadedUrl;
 }
 
 function makeUploadFileList(file) {
