@@ -132,17 +132,9 @@ function getTargetUrl() {
 }
 
 function getKakaoLink(targetUrl) {
-  const url = new URL(targetUrl);
-  const pathOnlyUrl = `${url.pathname}${url.search}${url.hash}` || "/";
-
   return {
     web_url: targetUrl,
-    mobile_web_url: targetUrl,
-    webUrl: targetUrl,
-    mobileWebUrl: targetUrl,
-    path: pathOnlyUrl,
-    web: pathOnlyUrl,
-    mobile_web: pathOnlyUrl
+    mobile_web_url: targetUrl
   };
 }
 
