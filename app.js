@@ -45,10 +45,10 @@ function isHttpUrl(value) {
 
 function updatePreview() {
   const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
-  const targetUrl = fallback(fields.targetUrl.value, fields.targetUrl.defaultValue);
+  const targetUrl = fallback(fields.targetUrl.value, "https://www.jw.org/");
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
-  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보기");
+  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
 
   preview.image.src = imageUrl;
   preview.title.textContent = title;
@@ -115,7 +115,7 @@ function getTargetDomainHint(targetUrl) {
 }
 
 function getTargetUrl() {
-  const targetUrl = fallback(fields.targetUrl.value, fields.targetUrl.defaultValue);
+  const targetUrl = fallback(fields.targetUrl.value, "https://www.jw.org/");
   if (!isHttpUrl(targetUrl)) {
     throw new Error("화면 접속 링크는 http 또는 https 주소여야 합니다.");
   }
@@ -168,7 +168,7 @@ async function getMessageTemplate() {
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
-  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보기");
+  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
   const link = getKakaoLink(targetUrl);
 
   return {
