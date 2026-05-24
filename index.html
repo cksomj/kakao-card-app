@@ -37,23 +37,30 @@
 
         <label>
           <span>화면 접속 링크</span>
-          <input id="targetUrl" type="url" value="https://www.jw.org/ko/" />
+          <input id="targetUrl" type="url" value="" />
           <small id="targetHint" class="field-note"></small>
         </label>
 
         <label>
           <span>인사말 박스</span>
-          <input id="titleText" maxlength="80" value="성경 질문과 대답" />
+          <input id="titleText" maxlength="80" value="" />
         </label>
 
         <label>
           <span>주제 박스</span>
-          <textarea id="descriptionText" maxlength="160">어떻게 이 땅에 평화가 이루어질 것입니까?</textarea>
+          <textarea id="descriptionText" maxlength="160"></textarea>
         </label>
 
         <label>
           <span>버튼 박스</span>
-          <input id="buttonText" maxlength="40" value="버튼을 눌러 자세히 알아보기" />
+          <span class="button-input-wrap">
+            <input id="buttonText" maxlength="40" value="버튼을 눌러 자세히 알아보세요" />
+            <span class="finger-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M8.9 21.4c-.8 0-1.6-.3-2.2-.9l-3.8-3.8c-.5-.5-.5-1.2 0-1.7.5-.5 1.2-.5 1.7 0l1.9 1.9V5.6c0-.7.5-1.2 1.2-1.2s1.2.5 1.2 1.2v6.1h.6V3.8c0-.7.5-1.2 1.2-1.2s1.2.5 1.2 1.2v7.9h.6V5.1c0-.7.5-1.2 1.2-1.2s1.2.5 1.2 1.2v6.6h.6V7.2c0-.7.5-1.2 1.2-1.2s1.2.5 1.2 1.2v8.9c0 2.9-2.4 5.3-5.3 5.3H8.9Z" />
+              </svg>
+            </span>
+          </span>
         </label>
 
         <div class="actions">
