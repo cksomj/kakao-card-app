@@ -1,7 +1,6 @@
 const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
 const FIXED_SITE_NAME = "jw.org";
 const CONTAIN_POSITION_Y = 0.5;
-const BUTTON_FINGER = "\u261D\uFE0E";
 
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
@@ -137,8 +136,7 @@ function getKakaoLink(targetUrl) {
 }
 
 function getButtonLabel() {
-  const text = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요").replace(/\s*☝︎?\s*$/, "");
-  return `${text} ${BUTTON_FINGER}`;
+  return fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요").replace(/\s*☝︎?\s*$/, "");
 }
 
 function formatKakaoError(error) {
