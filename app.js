@@ -168,6 +168,9 @@ async function getMessageTemplate() {
       image_height: 800,
       link
     },
+    item_content: {
+      profile_text: FIXED_SITE_NAME
+    },
     buttons: [
       {
         title: button,
