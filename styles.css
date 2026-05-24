@@ -303,10 +303,10 @@ textarea:focus {
 }
 
 .card-button {
-  background: #fee500;
-  border: 1px solid #f0d600;
+  background: #f2f4f6;
+  border: 1px solid #d9dee4;
   border-radius: 3px;
-  color: #111111;
+  color: #111827;
   display: block;
   font-size: 13px;
   font-weight: 700;
