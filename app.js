@@ -1,6 +1,6 @@
 const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
 const FIXED_SITE_NAME = "jw.org";
-const CONTAIN_POSITION_Y = 1;
+const CONTAIN_POSITION_Y = 0.5;
 
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
@@ -58,6 +58,7 @@ function updatePreview() {
   preview.site.textContent = FIXED_SITE_NAME;
   preview.image.dataset.fit = getImageFit();
   preview.image.style.objectPosition = getImageFit() === "contain" ? `center ${CONTAIN_POSITION_Y * 100}%` : "center center";
+  preview.image.style.backgroundImage = getImageFit() === "contain" ? `url("${imageUrl.replace(/"/g, "%22")}")` : "";
   targetHint.textContent = getTargetDomainHint(targetUrl);
 }
 
@@ -229,8 +230,7 @@ async function createContainedImageFile(imageUrl) {
   canvas.height = size;
 
   const context = canvas.getContext("2d");
-  context.fillStyle = "#eef2f6";
-  context.fillRect(0, 0, size, size);
+  drawCoverBackground(context, image, size);
 
   const scale = Math.min(size / image.naturalWidth, size / image.naturalHeight);
   const width = Math.round(image.naturalWidth * scale);
@@ -247,6 +247,22 @@ async function createContainedImageFile(imageUrl) {
   }
 
   return new File([blob], "kakao-card-image.jpg", { type: "image/jpeg" });
+}
+
+function drawCoverBackground(context, image, size) {
+  const scale = Math.max(size / image.naturalWidth, size / image.naturalHeight);
+  const width = Math.ceil(image.naturalWidth * scale);
+  const height = Math.ceil(image.naturalHeight * scale);
+  const x = Math.round((size - width) / 2);
+  const y = Math.round((size - height) / 2);
+
+  context.save();
+  context.filter = "blur(18px)";
+  context.drawImage(image, x - 24, y - 24, width + 48, height + 48);
+  context.restore();
+
+  context.fillStyle = "rgba(255, 255, 255, 0.18)";
+  context.fillRect(0, 0, size, size);
 }
 
 function loadImageForCanvas(imageUrl) {
