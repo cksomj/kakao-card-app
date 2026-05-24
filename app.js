@@ -1,6 +1,7 @@
 const KAKAO_JAVASCRIPT_KEY = "7039d10f9dcfd467890f3c81b5ffacbf";
 const FIXED_SITE_NAME = "jw.org";
 const CONTAIN_POSITION_Y = 0.5;
+const BUTTON_FINGER = "\u261D\uFE0E";
 
 const fields = {
   imageUrl: document.querySelector("#imageUrl"),
@@ -49,7 +50,7 @@ function updatePreview() {
   const targetUrl = fallback(fields.targetUrl.value, "https://www.jw.org/");
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
-  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
+  const button = getButtonLabel();
 
   preview.image.src = imageUrl;
   preview.title.textContent = title;
@@ -135,6 +136,11 @@ function getKakaoLink(targetUrl) {
   };
 }
 
+function getButtonLabel() {
+  const text = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요").replace(/\s*☝︎?\s*$/, "");
+  return `${text} ${BUTTON_FINGER}`;
+}
+
 function formatKakaoError(error) {
   if (!error) return "전송하지 못했습니다.";
   if (typeof error === "string") return error;
@@ -170,7 +176,7 @@ async function getMessageTemplate(options = {}) {
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
-  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
+  const button = getButtonLabel();
   const link = getKakaoLink(targetUrl);
 
   return {
@@ -218,7 +224,7 @@ function getShareTemplateSync() {
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
-  const button = fallback(fields.buttonText.value, "버튼을 눌러 자세히 알아보세요");
+  const button = getButtonLabel();
   const link = {
     webUrl: targetUrl,
     mobileWebUrl: targetUrl
