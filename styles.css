@@ -215,11 +215,17 @@ textarea:focus {
   padding: 28px;
 }
 
+.preview-stack {
+  display: grid;
+  gap: 12px;
+  width: min(340px, 100%);
+}
+
 .phone-frame {
   background: #cad5df;
   border-radius: 8px;
   padding: 4px;
-  width: min(340px, 100%);
+  width: 100%;
 }
 
 .kakao-card {
