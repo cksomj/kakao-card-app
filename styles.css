@@ -25,6 +25,30 @@ textarea {
   font: inherit;
 }
 
+.button-input-wrap {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 42px;
+}
+
+.finger-icon {
+  align-items: center;
+  background: #fee500;
+  border: 1px solid #f0d600;
+  border-radius: 6px;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.finger-icon svg {
+  fill: #191919;
+  height: 25px;
+  width: 25px;
+}
+
 button {
   cursor: pointer;
 }
