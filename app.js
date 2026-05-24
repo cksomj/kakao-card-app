@@ -84,6 +84,16 @@ document.querySelector("#sendToMe").addEventListener("click", async () => {
   }
 });
 
+document.querySelector("#shareKakao").addEventListener("click", async () => {
+  try {
+    await shareKakaoMessage();
+    statusText.textContent = "카톡 공유창을 열었습니다.";
+  } catch (error) {
+    console.error(error);
+    statusText.textContent = formatKakaoError(error);
+  }
+});
+
 preview.image.addEventListener("error", () => {
   preview.image.removeAttribute("src");
   preview.image.style.background = "linear-gradient(135deg, #dce6ef, #f7fafc)";
@@ -184,6 +194,23 @@ async function getMessageTemplate() {
   };
 }
 
+async function shareKakaoMessage() {
+  ensureKakaoReady();
+  const templateObject = await getMessageTemplate();
+
+  if (Kakao.Share && typeof Kakao.Share.sendDefault === "function") {
+    Kakao.Share.sendDefault(templateObject);
+    return;
+  }
+
+  if (Kakao.Link && typeof Kakao.Link.sendDefault === "function") {
+    Kakao.Link.sendDefault(templateObject);
+    return;
+  }
+
+  throw new Error("카카오 공유 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
+}
+
 async function getSendImageUrl() {
   const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
   if (getImageFit() !== "contain") return imageUrl;
@@ -257,11 +284,11 @@ function drawCoverBackground(context, image, size) {
   const y = Math.round((size - height) / 2);
 
   context.save();
-  context.filter = "blur(18px)";
-  context.drawImage(image, x - 24, y - 24, width + 48, height + 48);
+  context.filter = "blur(42px)";
+  context.drawImage(image, x - 70, y - 70, width + 140, height + 140);
   context.restore();
 
-  context.fillStyle = "rgba(255, 255, 255, 0.18)";
+  context.fillStyle = "rgba(255, 255, 255, 0.52)";
   context.fillRect(0, 0, size, size);
 }
 
