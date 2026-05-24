@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>카톡 카드 앱</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/v1/kakao.min.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="editor-panel">
+        <div class="app-title">
+          <span>카톡 카드 앱</span>
+          <strong>접속 링크 카드 만들기</strong>
+        </div>
+
+        <label>
+          <span>삽화 링크</span>
+          <input id="imageUrl" type="url" value="https://cms-imgp.jw-cdn.org/img/p/502500101/univ/art/502500101_univ_lsr_lg.jpg" />
+        </label>
+
+        <div class="field-group">
+          <span>삽화 맞춤</span>
+          <div class="segmented-control" role="radiogroup" aria-label="삽화 맞춤">
+            <label>
+              <input type="radio" name="imageFit" value="contain" checked />
+              <span>전체 보이기</span>
+            </label>
+            <label>
+              <input type="radio" name="imageFit" value="cover" />
+              <span>가득 채우기</span>
+            </label>
+          </div>
+          <p class="field-note">실제 카톡에서는 정사각형 이미지가 가장 안정적입니다.</p>
+        </div>
+
+        <label>
+          <span>화면 접속 링크</span>
+          <input id="targetUrl" type="url" value="https://www.jw.org/ko/" />
+          <small id="targetHint" class="field-note"></small>
+        </label>
+
+        <label>
+          <span>인사말 박스</span>
+          <input id="titleText" maxlength="80" value="성경 질문과 대답" />
+        </label>
+
+        <label>
+          <span>주제 박스</span>
+          <textarea id="descriptionText" maxlength="160">어떻게 이 땅에 평화가 이루어질 것입니까?</textarea>
+        </label>
+
+        <label>
+          <span>버튼 박스</span>
+          <input id="buttonText" maxlength="40" value="버튼을 눌러 자세히 알아보기" />
+        </label>
+
+        <label>
+          <span>하단 표시 이름</span>
+          <input id="siteName" maxlength="40" value="jw.org" />
+        </label>
+
+        <label>
+          <span>카카오 JavaScript 키</span>
+          <input id="kakaoKey" autocomplete="off" placeholder="Kakao Developers의 JavaScript 키" />
+        </label>
+
+        <div class="actions">
+          <button id="sendToMe" class="kakao-button" type="button">내 카톡으로 전송</button>
+          <button id="loginKakao" class="secondary-button" type="button">카카오 로그인만 테스트</button>
+        </div>
+
+        <p id="sendStatus" class="status-text" role="status"></p>
+      </section>
+
+      <section class="preview-panel" aria-label="카드 미리보기">
+        <div class="phone-frame">
+          <article class="kakao-card">
+            <img id="previewImage" class="card-image" alt="" />
+            <div class="card-body">
+              <h1 id="previewTitle"></h1>
+              <p id="previewDescription"></p>
+              <a id="previewButton" class="card-button" href="#" target="_blank" rel="noreferrer"></a>
+              <div class="card-footer">
+                <span class="app-icon">APP</span>
+                <span id="previewSite"></span>
+                <span class="arrow">›</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
