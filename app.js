@@ -22,6 +22,7 @@ const preview = {
 
 const statusText = document.querySelector("#sendStatus");
 const targetHint = document.querySelector("#targetHint");
+const refreshVersionButton = document.querySelector("#refreshVersion");
 const savedImageFit = localStorage.getItem("kakaoCardApp.imageFit");
 
 if (savedImageFit) {
@@ -45,13 +46,19 @@ function isHttpUrl(value) {
 }
 
 function updatePreview() {
-  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+  const imageUrl = fields.imageUrl.value.trim();
   const targetUrl = fallback(fields.targetUrl.value, "https://www.jw.org/");
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
   const button = getButtonLabel();
 
-  preview.image.src = imageUrl;
+  if (imageUrl) {
+    preview.image.src = imageUrl;
+    preview.image.hidden = false;
+  } else {
+    preview.image.removeAttribute("src");
+    preview.image.hidden = true;
+  }
   preview.title.textContent = title;
   preview.description.textContent = description;
   preview.button.textContent = button;
@@ -59,7 +66,7 @@ function updatePreview() {
   preview.site.textContent = FIXED_SITE_NAME;
   preview.image.dataset.fit = getImageFit();
   preview.imageStage.dataset.fit = getImageFit();
-  preview.imageStage.style.backgroundImage = getImageFit() === "contain" ? `url("${imageUrl.replace(/"/g, "%22")}")` : "";
+  preview.imageStage.style.backgroundImage = imageUrl && getImageFit() === "contain" ? `url("${imageUrl.replace(/"/g, "%22")}")` : "";
   preview.image.style.objectPosition = getImageFit() === "contain" ? `center ${CONTAIN_POSITION_Y * 100}%` : "center center";
   targetHint.textContent = getTargetDomainHint(targetUrl);
 }
@@ -94,6 +101,13 @@ document.querySelector("#shareKakao").addEventListener("click", async () => {
     console.error(error);
     statusText.textContent = formatKakaoError(error);
   }
+});
+
+refreshVersionButton.addEventListener("click", () => {
+  statusText.textContent = "새 버전을 불러오고 있습니다.";
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", Date.now().toString());
+  window.location.replace(url.href);
 });
 
 preview.image.addEventListener("error", () => {
@@ -170,7 +184,7 @@ function ensureKakaoReady() {
 }
 
 async function getMessageTemplate(options = {}) {
-  const imageUrl = options.useOriginalImage ? fallback(fields.imageUrl.value, fields.imageUrl.defaultValue) : await getSendImageUrl();
+  const imageUrl = options.useOriginalImage ? getImageUrl() : await getSendImageUrl();
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
@@ -247,7 +261,7 @@ async function getShareTemplate() {
 }
 
 async function getSendImageUrl() {
-  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+  const imageUrl = getImageUrl();
   if (getImageFit() !== "contain") return imageUrl;
 
   try {
@@ -264,6 +278,14 @@ async function getSendImageUrl() {
     console.error("전체 보이기 이미지 변환 실패", error);
     throw new Error(`전체 보이기 이미지를 만들지 못했습니다: ${formatKakaoError(error)}`);
   }
+}
+
+function getImageUrl() {
+  const imageUrl = fields.imageUrl.value.trim();
+  if (!isHttpUrl(imageUrl)) {
+    throw new Error("삽화 링크는 http 또는 https 주소로 입력해 주세요.");
+  }
+  return imageUrl;
 }
 
 async function uploadKakaoImageFile(file) {
