@@ -67,6 +67,23 @@ button {
   font-weight: 700;
 }
 
+.version-button {
+  align-self: start;
+  background: #ffffff;
+  border: 1px solid #c7d2dd;
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 7px 10px;
+  width: max-content;
+}
+
+.version-button:hover {
+  background: #eef5fb;
+}
+
 label {
   display: grid;
   gap: 7px;
