@@ -105,6 +105,9 @@ document.querySelector("#shareKakao").addEventListener("click", async () => {
 
 refreshVersionButton.addEventListener("click", () => {
   statusText.textContent = "새 버전을 불러오고 있습니다.";
+  if (window.Kakao?.Auth) {
+    clearKakaoAccessToken();
+  }
   const url = new URL(window.location.href);
   url.searchParams.set("v", Date.now().toString());
   window.location.replace(url.href);
@@ -124,7 +127,7 @@ function getImageFit() {
 function getTargetDomainHint(targetUrl) {
   try {
     const url = new URL(targetUrl);
-    return `카카오 제품 링크 관리에 등록할 도메인: ${url.origin}`;
+    return `카카오 제품 링크 관리에 등록할 버튼 도메인: ${url.origin} / 앱 호출 도메인: ${location.origin}`;
   } catch {
     return "http 또는 https로 시작하는 화면 접속 링크를 입력해 주세요.";
   }
@@ -156,12 +159,18 @@ function getButtonLabel() {
 function formatKakaoError(error) {
   if (!error) return "전송하지 못했습니다.";
   if (typeof error === "string") return error;
+  if (isKakaoDomainMismatchError(error)) {
+    return `카카오 도메인 등록 오류입니다. Kakao Developers > 제품 링크 관리 > 웹 도메인에 ${location.origin} 을 등록해 주세요. JavaScript SDK 도메인에도 같은 주소가 필요합니다.`;
+  }
+  if (isKakaoAuthTokenError(error)) {
+    return "카카오 로그인 정보가 만료되었습니다. 새 버전 적용을 누른 뒤 다시 내 카톡으로 전송해 주세요.";
+  }
   if (error.error_description) return error.error_description;
   if (error.error) return `${error.error}${error.error_description ? `: ${error.error_description}` : ""}`;
   if (error.message) return error.message;
   if (error.msg) {
     const scopeHint = error.code === -402 ? " 동의항목 talk_message 설정이나 추가 동의가 필요합니다." : "";
-    const domainHint = error.code === -401 || error.code === -403 ? " JavaScript SDK 도메인과 제품 링크 Web 도메인을 확인해 주세요." : "";
+    const domainHint = error.code === -401 || error.code === -403 ? ` JavaScript SDK 도메인과 제품 링크 Web 도메인에 ${location.origin} 이 등록되어 있는지 확인해 주세요.` : "";
     return `${error.msg}${error.code ? ` (${error.code})` : ""}${scopeHint}${domainHint}`;
   }
   try {
@@ -377,7 +386,15 @@ function loadImageForCanvas(imageUrl) {
 
 async function requestTalkMessageScope(options = {}) {
   const token = Kakao.Auth.getAccessToken();
-  if (token && !options.force) return;
+  if (token && !options.force) {
+    try {
+      await validateKakaoAccessToken();
+      return;
+    } catch (error) {
+      console.warn("카카오 토큰 확인 실패, 다시 로그인합니다.", error);
+      clearKakaoAccessToken();
+    }
+  }
 
   await new Promise((resolve, reject) => {
     const popupTimer = window.setTimeout(() => {
@@ -398,21 +415,43 @@ async function requestTalkMessageScope(options = {}) {
   });
 }
 
+async function validateKakaoAccessToken() {
+  await new Promise((resolve, reject) => {
+    Kakao.API.request({
+      url: "/v1/user/access_token_info",
+      success: resolve,
+      fail: reject
+    });
+  });
+}
+
 async function sendKakaoMessageToMe() {
   statusText.textContent = "카카오 로그인과 전송을 준비하고 있습니다.";
   ensureKakaoReady();
   const targetUrl = getTargetUrl();
-  statusText.textContent = `전송할 버튼 링크: ${targetUrl}`;
+  statusText.textContent = `전송 준비: 앱 도메인 ${location.origin}, 버튼 링크 ${targetUrl}`;
   await requestTalkMessageScope();
   const templateObject = await getMessageTemplate();
 
   try {
     await sendMemoTemplate(templateObject);
   } catch (error) {
-    if (!isTalkMessageScopeError(error)) throw error;
-    statusText.textContent = "카카오톡 메시지 전송 동의가 필요합니다. 동의 후 다시 전송합니다.";
-    await requestTalkMessageScope({ force: true });
-    await sendMemoTemplate(templateObject);
+    if (isTalkMessageScopeError(error)) {
+      statusText.textContent = "카카오톡 메시지 전송 동의가 필요합니다. 동의 후 다시 전송합니다.";
+      await requestTalkMessageScope({ force: true });
+      await sendMemoTemplate(templateObject);
+      return;
+    }
+
+    if (isKakaoAuthTokenError(error)) {
+      statusText.textContent = "카카오 로그인 정보가 만료되어 다시 로그인합니다.";
+      clearKakaoAccessToken();
+      await requestTalkMessageScope({ force: true });
+      await sendMemoTemplate(templateObject);
+      return;
+    }
+
+    throw error;
   }
 }
 
@@ -431,4 +470,26 @@ async function sendMemoTemplate(templateObject) {
 
 function isTalkMessageScopeError(error) {
   return error?.code === -402 || error?.required_scopes?.includes?.("talk_message") || /insufficient scopes/i.test(error?.msg || "");
+}
+
+function isKakaoDomainMismatchError(error) {
+  const message = `${error?.msg || ""} ${error?.error_description || ""}`;
+  return (error?.code === -401 || error?.code === -403) && /domain mismatched|registered web domains|web_site_url/i.test(message);
+}
+
+function isKakaoAuthTokenError(error) {
+  const message = `${error?.msg || ""} ${error?.error_description || ""}`;
+  return (error?.code === -401 || error?.code === -403) && /access token|invalid_token|expired|not exist/i.test(message);
+}
+
+function clearKakaoAccessToken() {
+  try {
+    Kakao.Auth.setAccessToken(null);
+  } catch {
+    try {
+      Kakao.Auth.logout();
+    } catch {
+      // Ignore logout cleanup failures and continue with a fresh login attempt.
+    }
+  }
 }
