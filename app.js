@@ -108,9 +108,9 @@ refreshVersionButton.addEventListener("click", () => {
   if (window.Kakao?.Auth) {
     clearKakaoAccessToken();
   }
-  const url = new URL(window.location.href);
+  const url = new URL(window.location.origin + window.location.pathname);
   url.searchParams.set("v", Date.now().toString());
-  window.location.replace(url.href);
+  window.location.href = url.href;
 });
 
 preview.image.addEventListener("error", () => {
