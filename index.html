@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>카톡 카드 앱</title>
+    <title>카카오 봉사카드 Ver.1</title>
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/v1/kakao.min.js"></script>
   </head>
@@ -11,13 +11,14 @@
     <main class="app-shell">
       <section class="editor-panel">
         <div class="app-title">
-          <span>카톡 카드 앱</span>
+          <span>카카오 봉사카드 Ver.1</span>
           <strong>접속 링크 카드 만들기</strong>
+          <button id="refreshVersion" class="version-button" type="button">새 버전 적용</button>
         </div>
 
         <label>
           <span>삽화 링크</span>
-          <input id="imageUrl" type="url" value="https://cms-imgp.jw-cdn.org/img/p/502500101/univ/art/502500101_univ_lsr_lg.jpg" />
+          <input id="imageUrl" type="url" value="" />
         </label>
 
         <div class="field-group">
