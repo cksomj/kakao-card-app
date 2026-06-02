@@ -86,9 +86,9 @@ document.querySelector("#sendToMe").addEventListener("click", async () => {
   }
 });
 
-document.querySelector("#shareKakao").addEventListener("click", () => {
+document.querySelector("#shareKakao").addEventListener("click", async () => {
   try {
-    shareKakaoMessage();
+    await shareKakaoMessage();
     statusText.textContent = "카톡 공유창을 열었습니다.";
   } catch (error) {
     console.error(error);
@@ -200,9 +200,9 @@ async function getMessageTemplate(options = {}) {
   };
 }
 
-function shareKakaoMessage() {
+async function shareKakaoMessage() {
   ensureKakaoReady();
-  const templateObject = getShareTemplateSync();
+  const templateObject = await getShareTemplate();
 
   if (Kakao.Share && typeof Kakao.Share.sendDefault === "function") {
     Kakao.Share.sendDefault(templateObject);
@@ -217,8 +217,8 @@ function shareKakaoMessage() {
   throw new Error("카카오 공유 기능을 사용할 수 없습니다. 페이지를 새로고침해 주세요.");
 }
 
-function getShareTemplateSync() {
-  const imageUrl = fallback(fields.imageUrl.value, fields.imageUrl.defaultValue);
+async function getShareTemplate() {
+  const imageUrl = await getSendImageUrl();
   const targetUrl = getTargetUrl();
   const title = fallback(fields.titleText.value, "성경 질문과 대답");
   const description = fallback(fields.descriptionText.value, "어떻게 이 땅에 평화가 이루어질 것입니까?");
@@ -254,13 +254,7 @@ async function getSendImageUrl() {
     statusText.textContent = "삽화를 전체 보이기용 정사각형 이미지로 변환하고 있습니다.";
     const file = await createContainedImageFile(imageUrl);
 
-    if (!Kakao.Share || typeof Kakao.Share.uploadImage !== "function") {
-      throw new Error("카카오 이미지 업로드 기능을 사용할 수 없습니다.");
-    }
-
-    const response = await Kakao.Share.uploadImage({
-      file: makeUploadFileList(file)
-    });
+    const response = await uploadKakaoImageFile(file);
     const uploadedUrl = response?.infos?.original?.url;
     if (!uploadedUrl) {
       throw new Error("카카오 이미지 업로드 응답에서 이미지 URL을 찾지 못했습니다.");
@@ -269,6 +263,26 @@ async function getSendImageUrl() {
   } catch (error) {
     console.error("전체 보이기 이미지 변환 실패", error);
     throw new Error(`전체 보이기 이미지를 만들지 못했습니다: ${formatKakaoError(error)}`);
+  }
+}
+
+async function uploadKakaoImageFile(file) {
+  const uploader =
+    Kakao.Share && typeof Kakao.Share.uploadImage === "function"
+      ? Kakao.Share.uploadImage.bind(Kakao.Share)
+      : Kakao.Link && typeof Kakao.Link.uploadImage === "function"
+        ? Kakao.Link.uploadImage.bind(Kakao.Link)
+        : null;
+
+  if (!uploader) {
+    throw new Error("카카오 이미지 업로드 기능을 사용할 수 없습니다.");
+  }
+
+  try {
+    return await uploader({ file: makeUploadFileList(file) });
+  } catch (error) {
+    console.warn("FileList 업로드 실패, File 배열로 재시도", error);
+    return uploader({ file: [file] });
   }
 }
 
@@ -299,8 +313,12 @@ async function createContainedImageFile(imageUrl) {
   const y = Math.round((size - height) * CONTAIN_POSITION_Y);
   context.drawImage(image, x, y, width, height);
 
-  const blob = await new Promise((resolve) => {
-    canvas.toBlob(resolve, "image/jpeg", 0.92);
+  const blob = await new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob(resolve, "image/jpeg", 0.92);
+    } catch (error) {
+      reject(error);
+    }
   });
   if (!blob) {
     throw new Error("삽화를 변환하지 못했습니다.");
@@ -335,9 +353,9 @@ function loadImageForCanvas(imageUrl) {
   });
 }
 
-async function requestTalkMessageScope() {
+async function requestTalkMessageScope(options = {}) {
   const token = Kakao.Auth.getAccessToken();
-  if (token) return;
+  if (token && !options.force) return;
 
   await new Promise((resolve, reject) => {
     const popupTimer = window.setTimeout(() => {
@@ -366,6 +384,17 @@ async function sendKakaoMessageToMe() {
   await requestTalkMessageScope();
   const templateObject = await getMessageTemplate();
 
+  try {
+    await sendMemoTemplate(templateObject);
+  } catch (error) {
+    if (!isTalkMessageScopeError(error)) throw error;
+    statusText.textContent = "카카오톡 메시지 전송 동의가 필요합니다. 동의 후 다시 전송합니다.";
+    await requestTalkMessageScope({ force: true });
+    await sendMemoTemplate(templateObject);
+  }
+}
+
+async function sendMemoTemplate(templateObject) {
   await new Promise((resolve, reject) => {
     Kakao.API.request({
       url: "/v2/api/talk/memo/default/send",
@@ -376,4 +405,8 @@ async function sendKakaoMessageToMe() {
       fail: reject
     });
   });
+}
+
+function isTalkMessageScopeError(error) {
+  return error?.code === -402 || error?.required_scopes?.includes?.("talk_message") || /insufficient scopes/i.test(error?.msg || "");
 }
